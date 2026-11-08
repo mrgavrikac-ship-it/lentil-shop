@@ -58,7 +58,7 @@ function openItem(){
   const enough=state.ready&&state.balance>=product.price;
   let requestId=sessionStorage.getItem('pending-order-'+product.id);
   if(!requestId){requestId=crypto.randomUUID();sessionStorage.setItem('pending-order-'+product.id,requestId);}
-  const scene=element('div','m-image'),pic=new Image();pic.src=product.img;pic.alt=product.name;scene.append(pic);if(product.whiteBackground)scene.classList.add('white-product');
+  const scene=element('div','m-image'),pic=new Image();pic.src=product.img;pic.alt=product.name;scene.append(pic);
   modal.replaceChildren(closeButton(),scene,heading(product.name),element('p','m-desc',product.desc));
   if(state.demo)modal.append(element('p','m-desc','Демонстрационная покупка. Настоящие баллы не списываются.'));
   const rows=element('div','m-rows');rows.append(row('Стоимость',product.price),row('Ваш баланс',state.ready?state.balance:'—'));
@@ -96,7 +96,6 @@ function selectItem(index){
   item=ITEMS[index];
   const picture=$('#productPreview img');picture.src=item.img;picture.alt=item.name+' — '+item.price+' чечевичек';
   $('#productPreview').setAttribute('aria-label','Рассмотреть '+item.name);
-  $('.product-scene').classList.toggle('white-product',!!item.whiteBackground);
   $('.product-info h2').textContent=item.name;
   $('.product-desc').textContent=item.desc;$('.weight').textContent=item.detail;
   $('.price b').textContent=item.price;
@@ -105,7 +104,7 @@ function selectItem(index){
 }
 async function loadCatalog(){
   try{
-    const response=await fetch('catalog.json?v=4',{cache:'no-store'});
+    const response=await fetch('catalog.json?v=5',{cache:'no-store'});
     if(!response.ok)throw new Error();
     ITEMS=await response.json();
     if(!Array.isArray(ITEMS)||!ITEMS.length)throw new Error();
