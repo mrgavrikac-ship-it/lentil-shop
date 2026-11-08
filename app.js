@@ -17,7 +17,7 @@ dialog.addEventListener('click',event=>{if(event.target===dialog)closeDialog();}
 function closeButton() {const b=document.createElement('button'); b.className='close';b.textContent='×';b.setAttribute('aria-label','Закрыть');b.onclick=closeDialog;return b;}
 function element(tag, className, text) {const e=document.createElement(tag);e.className=className;if(text!==undefined)e.textContent=text;return e;}
 function heading(text) {const h=element('h2','m-title',text);h.id='modalTitle';return h;}
-function lentil() {const i=new Image();i.src='assets/lentil.png';i.alt='чечевичек';return i;}
+function lentil() {const i=new Image();i.src='assets/lentil-fast.webp';i.alt='чечевичек';return i;}
 function row(label, value, bad=false) {const e=element('div','row'+(bad?' bad':'')),b=element('b','',String(value));b.append(lentil());e.append(element('span','',label),b);return e;}
 function updateBalance() {$('#balanceNum').textContent=state.ready?String(state.balance):'—';$('#modeLabel').textContent=state.demo?'Предпросмотр · демо-баланс':state.ready?'Баланс синхронизирован':'Нет соединения с балансом';}
 function connectionStatus(message) {
@@ -58,7 +58,7 @@ function openItem(){
   const enough=state.ready&&state.balance>=product.price;
   let requestId=sessionStorage.getItem('pending-order-'+product.id);
   if(!requestId){requestId=crypto.randomUUID();sessionStorage.setItem('pending-order-'+product.id,requestId);}
-  const scene=element('div','m-image'),pic=new Image();pic.src=product.img;pic.alt=product.name;scene.append(pic);
+  const scene=element('div','m-image'),pic=new Image();pic.decoding="async";pic.src=product.img;pic.alt=product.name;scene.append(pic);
   modal.replaceChildren(closeButton(),scene,heading(product.name),element('p','m-desc',product.desc));
   if(state.demo)modal.append(element('p','m-desc','Демонстрационная покупка. Настоящие баллы не списываются.'));
   const rows=element('div','m-rows');rows.append(row('Стоимость',product.price),row('Ваш баланс',state.ready?state.balance:'—'));
@@ -104,13 +104,20 @@ function selectItem(index){
 }
 async function loadCatalog(){
   try{
-    const response=await fetch('catalog.json?v=5',{cache:'no-store'});
+    const response=await fetch('catalog.json?v=6',{cache:'no-store'});
     if(!response.ok)throw new Error();
     ITEMS=await response.json();
     if(!Array.isArray(ITEMS)||!ITEMS.length)throw new Error();
     const picker=$('#catalogPicker');
     ITEMS.forEach((product,index)=>{const button=element('button','catalog-option',product.short);button.setAttribute('aria-label',product.name+', '+product.price+' чечевичек');button.onclick=()=>selectItem(index);picker.append(button);catalogButtons.push(button);});
     selectItem(0);
+    // Warm the other small images only when the browser is idle and data saving is off.
+    const connection=window.navigator?.connection;
+    if(window.requestIdleCallback&&!connection?.saveData&&!/^(slow-2g|2g|3g)$/.test(connection?.effectiveType||'')){
+      window.requestIdleCallback(()=>ITEMS.slice(1).forEach(product=>{
+        const preview=new Image();preview.decoding='async';preview.fetchPriority='low';preview.src=product.img;
+      }));
+    }
   }catch{connectionStatus('Не удалось загрузить товары. Закройте магазин и откройте заново.');}
 }
 

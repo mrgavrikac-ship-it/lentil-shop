@@ -4,7 +4,7 @@
     "name": "DIDO Nut",
     "short": "Nut",
     "price": 25,
-    "img": "assets/dido.png",
+    "img": "assets/dido-fast.webp",
     "desc": "Вафельный батончик с молочным шоколадом и фундуком.",
     "detail": "35 г · с фундуком"
   },
@@ -13,7 +13,7 @@
     "name": "DIDO",
     "short": "Классический",
     "price": 25,
-    "img": "assets/dido-classic-cutout.png",
+    "img": "assets/dido-classic-fast.webp",
     "desc": "Классический вафельный батончик в шоколаде.",
     "detail": "1 батончик"
   },
@@ -22,7 +22,7 @@
     "name": "DIDO Gold",
     "short": "Gold",
     "price": 25,
-    "img": "assets/dido-gold-cutout.png",
+    "img": "assets/dido-gold-fast.webp",
     "desc": "Вафельный батончик с молочной начинкой.",
     "detail": "1 батончик"
   },
@@ -31,7 +31,7 @@
     "name": "DIDO Trio Bitter",
     "short": "Trio Bitter",
     "price": 25,
-    "img": "assets/dido-trio-cutout.png",
+    "img": "assets/dido-trio-fast.webp",
     "desc": "Вафельный батончик DIDO Trio Bitter.",
     "detail": "1 батончик"
   }
