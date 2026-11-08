@@ -1,7 +1,7 @@
 'use strict';
 const $ = selector => document.querySelector(selector);
 const tg = window.Telegram?.WebApp;
-const API_BASE = (window.SHOP_CONFIG?.API_BASE || '/api').replace(/\/$/, '');
+const API_BASE = (window.SHOP_CONFIG?.API_BASE || 'https://exit-cupped-embassy.ngrok-free.dev/api').replace(/\/$/, '');
 try { tg?.ready(); tg?.expand(); tg?.setHeaderColor('#10251f'); tg?.setBackgroundColor('#10251f'); } catch {}
 const item = {id:'dido-nut', name:'DIDO Nut', price:25, img:'assets/dido.png', desc:'Вафельный батончик с молочным шоколадом и фундуком, 35 г.'};
 const state = {balance:0, demo:!tg?.initData, ready:false, busy:false};
@@ -19,17 +19,27 @@ function heading(text) {const h=element('h2','m-title',text);h.id='modalTitle';r
 function lentil() {const i=new Image();i.src='assets/lentil.png';i.alt='чечевичек';return i;}
 function row(label, value, bad=false) {const e=element('div','row'+(bad?' bad':'')),b=element('b','',String(value));b.append(lentil());e.append(element('span','',label),b);return e;}
 function updateBalance() {$('#balanceNum').textContent=state.ready?String(state.balance):'—';$('#modeLabel').textContent=state.demo?'Предпросмотр · демо-баланс':state.ready?'Баланс синхронизирован':'Нет соединения с балансом';}
+function connectionStatus(message) {
+  let box=$('#connectionStatus');
+  if(!box){box=element('p','connection-status');box.id='connectionStatus';box.setAttribute('role','status');$('#showcase').prepend(box);}
+  box.textContent=message;box.hidden=!message;
+}
 async function api(path, options={}) {
   const tunnelHeaders = /^https:\/\/[a-z0-9.-]+\.ngrok-free\.(dev|app)(\/|$)/.test(API_BASE) ? {'ngrok-skip-browser-warning':'1'} : {};
-  const response=await fetch(API_BASE+path,{...options,signal:AbortSignal.timeout(12000),headers:{'Content-Type':'application/json','X-Init-Data':tg?.initData||'',...tunnelHeaders,...options.headers}});
-  let data;try {data=await response.json();}catch{throw new Error('Сервер временно недоступен');}
-  if(!response.ok)throw new Error(response.status===401?'Откройте магазин через своего Telegram-бота':data.error||'Сервер временно недоступен');
+  let response;
+  const host=new URL(API_BASE,location.href).hostname;
+  try{response=await fetch(API_BASE+path,{...options,cache:'no-store',signal:AbortSignal.timeout(12000),headers:{'Content-Type':'application/json','X-Init-Data':tg?.initData||'',...tunnelHeaders,...options.headers}});}
+  catch(error){throw new Error(`Нет ответа от ${host}. ${error.name==='TimeoutError'?'Ожидание больше 12 секунд.':'Проверьте подключение и доступность API.'}`);}
+  const raw=await response.text();
+  let data;try {data=JSON.parse(raw);}catch{const code=raw.match(/ERR_NGROK_\d+/)?.[0];throw new Error(`API ${host}: HTTP ${response.status}, вместо данных пришла веб-страница${code?' ('+code+')':''}. Версия магазина: 3.`);}
+  if(!response.ok)throw new Error(data.error||`API ${host}: HTTP ${response.status}`);
   return data;
 }
 async function loadBalance(){
   if(state.demo){state.balance=100;state.ready=true;updateBalance();return;}
   try{const data=await api('/balance');if(!Number.isFinite(data.balance))throw new Error('Не удалось загрузить баланс');state.balance=data.balance;state.ready=true;}
-  catch(error){state.ready=false;toast(error.message);}
+  catch(error){state.ready=false;connectionStatus(error.message);toast(error.message);}
+  if(state.ready)connectionStatus('');
   updateBalance();
 }
 function showHow(){
