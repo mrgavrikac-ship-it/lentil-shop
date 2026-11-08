@@ -20,7 +20,8 @@ function lentil() {const i=new Image();i.src='assets/lentil.png';i.alt='чече
 function row(label, value, bad=false) {const e=element('div','row'+(bad?' bad':'')),b=element('b','',String(value));b.append(lentil());e.append(element('span','',label),b);return e;}
 function updateBalance() {$('#balanceNum').textContent=state.ready?String(state.balance):'—';$('#modeLabel').textContent=state.demo?'Предпросмотр · демо-баланс':state.ready?'Баланс синхронизирован':'Нет соединения с балансом';}
 async function api(path, options={}) {
-  const response=await fetch(API_BASE+path,{...options,signal:AbortSignal.timeout(12000),headers:{'Content-Type':'application/json','X-Init-Data':tg?.initData||'',...options.headers}});
+  const tunnelHeaders = /^https:\/\/[a-z0-9.-]+\.ngrok-free\.(dev|app)(\/|$)/.test(API_BASE) ? {'ngrok-skip-browser-warning':'1'} : {};
+  const response=await fetch(API_BASE+path,{...options,signal:AbortSignal.timeout(12000),headers:{'Content-Type':'application/json','X-Init-Data':tg?.initData||'',...tunnelHeaders,...options.headers}});
   let data;try {data=await response.json();}catch{throw new Error('Сервер временно недоступен');}
   if(!response.ok)throw new Error(response.status===401?'Откройте магазин через своего Telegram-бота':data.error||'Сервер временно недоступен');
   return data;
